@@ -4,11 +4,10 @@
 
 #define MAX_MESSAGE_LENGHT 128
 
-void initial(char* str)
+void get_user_input(char* str)
 {
 	printf("If your input is longer than %d characters, overflow chars will be ignored.\n", MAX_MESSAGE_LENGHT - 1);
 	printf("Enter ASCII message to transform it to binary code: ");
-
 	strcpy_s(str, MAX_MESSAGE_LENGHT, fgets(str, MAX_MESSAGE_LENGHT, stdin)); //copy user input into 
 }
 
@@ -26,13 +25,13 @@ void convert_char_to_binary(char letter, int arrayIndex, int* strOut)
 	}
 }
 
-void loop_throught_message(char* str, int* strOutput)
+void loop_thr_msg(char* str, int* strOutput)
 {
 	for (size_t i = 0; i < strlen(str)-1; i++) // -1 because ignore last ASCII(DEC 10, new line)
 		convert_char_to_binary(str[i], i, strOutput);
 }
 
-void print_message(int messageLenght, int* strOutput)
+void print_convert_msg(int messageLenght, int* strOutput)
 {
 	for (int i = 0; i < messageLenght-1; i++) // -1 because ignore last ASCII(DEC 10, new line)
 	{
@@ -80,22 +79,14 @@ void save_to_file(int messageLenght, int* dataToWrite)
 
 int main()
 {
-	char inputMesssage[MAX_MESSAGE_LENGHT]; //create array for user input text
-	initial(inputMesssage); //save the message to created array
+	char inputMesssage[MAX_MESSAGE_LENGHT]; //user text input is saved here
+	int messageLenght;
 
-	int messageLenght = strlen(inputMesssage); //get lenght of the inserted text
-
-	int * strOutput = (int*) calloc(messageLenght * 8, sizeof(int)); //allocate memory for storing all ascii in binary values
-
-	printf("Your message lenght is: %d\n", messageLenght);
-
-	loop_throught_message(inputMesssage, strOutput);
-	print_message(messageLenght, strOutput);
-	save_to_file(messageLenght, strOutput);
+	int * strOutput = (int*) calloc(8, sizeof(int)); //allocate some memory (size Will be dynamically changed by user input lenght)
 
 	while (1)
 	{
-		initial(inputMesssage); //save the message from user input
+		get_user_input(inputMesssage); //save the message from user input
 		messageLenght = strlen(inputMesssage);
 
 		printf("New message lenght: %d\n", messageLenght);
@@ -107,12 +98,11 @@ int main()
 			break;
 		}
 		
-		loop_throught_message(inputMesssage, strOutput);
-		print_message(messageLenght, strOutput);
+		loop_thr_msg(inputMesssage, strOutput);
+		print_convert_msg(messageLenght, strOutput);
 		save_to_file(messageLenght, strOutput);
 	}
 
 	free(strOutput);
-
 	return 0;
 }
