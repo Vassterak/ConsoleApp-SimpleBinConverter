@@ -2,18 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_MESSAGE_LENGHT 64
+#define MAX_MESSAGE_LENGHT 128
 
 void initial(char* str)
 {
-	str[0] = '\0';
 	printf("If your input is longer than %d characters, overflow chars will be ignored.\n", MAX_MESSAGE_LENGHT - 1);
 	printf("Enter ASCII message to transform it to binary code: ");
 
-	strcpy_s(str, MAX_MESSAGE_LENGHT, fgets(str, MAX_MESSAGE_LENGHT, stdin));
+	strcpy_s(str, MAX_MESSAGE_LENGHT, fgets(str, MAX_MESSAGE_LENGHT, stdin)); //copy user input into 
 }
 
-void convert_each_char(char letter, int arrayIndex, int* strOut)
+void convert_char_to_binary(char letter, int arrayIndex, int* strOut)
 {
 	unsigned char workaround = letter; //char is signed by default so bitshift to left -> overflow to negative values. For fix we use unsigned char
 	for (size_t i = 0; i < 8; i++)
@@ -29,24 +28,36 @@ void convert_each_char(char letter, int arrayIndex, int* strOut)
 
 void loop_throught_message(char* str, int* strOutput)
 {
-	//int* strOutput = malloc(strlen(str) * 8 * sizeof(int));
-	for (size_t i = 0; i < strlen(str); i++)
-		convert_each_char(str[i], i, strOutput);
+	for (size_t i = 0; i < strlen(str)-1; i++) // -1 because ignore last ASCII(DEC 10, new line)
+		convert_char_to_binary(str[i], i, strOutput);
 }
 
 void print_message(int messageLenght, int* strOutput)
 {
-	for (int i = 0; i < messageLenght; i++)
+	for (int i = 0; i < messageLenght-1; i++) // -1 because ignore last ASCII(DEC 10, new line)
 	{
 		for (int j = 0; j < 8; j++)
 			printf("%d", strOutput[i * 8 + j]);
 		printf("\n");
 	}
-	printf("--------------------------------------\n");
 }
 
 void save_to_file(int messageLenght, int* dataToWrite)
 {
+	char userAnswer;
+	do
+	{
+		printf("PS: if you already saved a file now it will be replaced! Be careful.\n");
+		printf("Would you like to save the new file? y/n ");
+
+		scanf(" %c", &userAnswer); 
+		getchar(); // the getchar() is necessary because the fgets will thing that user input is new line.
+
+	} while (tolower(userAnswer) != 'y' && tolower(userAnswer) != 'n');
+
+	if (userAnswer == 'n')
+		return;
+
 	printf("Your binary output is saved to file named: binaryOutput.txt\n");
 
 	FILE* outputFile;
@@ -54,61 +65,54 @@ void save_to_file(int messageLenght, int* dataToWrite)
 
 	if (outputFile != NULL)
 	{
-		for (int i = 0; i < messageLenght; i++)
+		for (int i = 0; i < messageLenght-1; i++)
 		{
 			for (int j = 0; j < 8; j++)
-				fprintf(outputFile, "%d", dataToWrite[i * 8 * j]);
+				fprintf(outputFile, "%d", dataToWrite[i * 8 + j]);
 			fputs("\n", outputFile);
 		}
 		fclose(outputFile);
 	}
 	else
 		printf("Unable to create a file.\n");
-}
-
-int new_conversion()
-{
-	printf("Would you like to convert next text to binary y/n.\n");
-	/*
-	char detectNewConversion[2] = "";
-	fgets(detectNewConversion, 1, stdin);
-	if (detectNewConversion[0] == 89)
-		return 0;
-	else*/
-		return 1;
+	printf("\n");
 }
 
 int main()
 {
-	int isNew = 1;
-	int* strOutput = NULL;
+	char inputMesssage[MAX_MESSAGE_LENGHT]; //create array for user input text
+	initial(inputMesssage); //save the message to created array
 
-	char inputMesssage[MAX_MESSAGE_LENGHT]; //user text
-	initial(inputMesssage); //save the message from user input
-	int messageLenght = strlen(inputMesssage) -1;
+	int messageLenght = strlen(inputMesssage); //get lenght of the inserted text
 
-	strOutput = (int*) malloc(messageLenght * 8 * sizeof(int)); //create array used to store output values
-	printf("Your message lenght: %d\n", messageLenght);
+	int * strOutput = (int*) calloc(messageLenght * 8, sizeof(int)); //allocate memory for storing all ascii in binary values
+
+	printf("Your message lenght is: %d\n", messageLenght);
+
 	loop_throught_message(inputMesssage, strOutput);
 	print_message(messageLenght, strOutput);
+	save_to_file(messageLenght, strOutput);
 
 	while (1)
 	{
 		initial(inputMesssage); //save the message from user input
-		int messageLenght = strlen(inputMesssage) - 1;
+		messageLenght = strlen(inputMesssage);
 
-		printf("Your message lenght: %d\n", messageLenght);
+		printf("New message lenght: %d\n", messageLenght);
 
-		strOutput = realloc(strOutput, messageLenght * 8 * sizeof(int)); //change allocated memory, IDK NOT WORKING IDK HOW TO FIX IT...
+		strOutput = (int*) realloc(strOutput, (messageLenght * 8 * sizeof(int))); //change allocated memory NOT USED
+		if (strOutput == NULL) //Check if memory reallocation was successful
+		{
+			printf("Mememory allocation failed\n");
+			break;
+		}
 		
 		loop_throught_message(inputMesssage, strOutput);
 		print_message(messageLenght, strOutput);
-
-		//save_to_file(messageLenght, strOutput);
-
-		//free(strOutput[0]);
-		free(strOutput);
+		save_to_file(messageLenght, strOutput);
 	}
+
+	free(strOutput);
 
 	return 0;
 }
