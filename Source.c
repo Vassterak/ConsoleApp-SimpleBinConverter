@@ -91,10 +91,10 @@ int main()
 
 		printf("New message lenght: %d\n", messageLenght);
 
-		strOutput = (int*) realloc(strOutput, (messageLenght * 8 * sizeof(int))); //change allocated memory NOT USED
+		strOutput = (int*) realloc(strOutput, (messageLenght * 8 * sizeof(int))); //change allocated memory
 		if (strOutput == NULL) //Check if memory reallocation was successful
 		{
-			printf("Mememory allocation failed\n");
+			printf("Memory allocation failed\n");
 			break;
 		}
 		
